@@ -1,40 +1,46 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 
 namespace TicTacToeMVP
 {
     public interface IModel
     {
-        string current_turn { get; set; }
-        bool is_game_finished { get; set; }
+        bool HardModeEnabled { get; set; }
         bool MakePlayerMove(int index);
         int MakeCPUMove();
         bool WinCheck();
+        bool TieCheck();
         void Reset();
     }
 
     public class Model : IModel
     {
-        public string current_turn { get; set; }
-        public bool is_game_finished { get; set; }
         public string[] Board { get; } = new string[9];
+        public bool HardModeEnabled { get; set; } = true;
+
         public int MakeCPUMove()
         {
+            if (HardModeEnabled)
+            {
+                if (Board[4] == null)
+                {
+                    Board[4] = "O";
+                    return 4;
+                }
+            }
+
             List<int> availableIndices = GetAvailableIndices();
             if (availableIndices.Count > 0)
             {
                 Random random = new Random();
                 int randomIndex = availableIndices[random.Next(availableIndices.Count)];
                 Board[randomIndex] = "O";
-                if (WinCheck())
-                {
-                    MessageBox.Show("O Won!");
-                    return -1;
-                }
                 return randomIndex;
             }
             return -1;
@@ -43,12 +49,7 @@ namespace TicTacToeMVP
         public bool MakePlayerMove(int index)
         {
             Board[index] = "X";
-            if (WinCheck())
-            {
-                MessageBox.Show("X Won!");
-                return true;
-            }
-            return false;
+            return true;
         }
 
         public void Reset()
@@ -57,6 +58,18 @@ namespace TicTacToeMVP
             {
                 Board[i] = null;
             }
+        }
+
+        public bool TieCheck()
+        {
+            foreach (var item in Board)
+            {
+                if (item == null)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public bool WinCheck()
@@ -70,7 +83,6 @@ namespace TicTacToeMVP
                || Board[0] == "X" && Board[4] == "X" && Board[8] == "X"
                || Board[2] == "X" && Board[4] == "X" && Board[6] == "X")
             {
-                Reset();
                 return true;
             }
 
@@ -83,19 +95,12 @@ namespace TicTacToeMVP
             || Board[0] == "O" && Board[4] == "O" && Board[8] == "O"
             || Board[2] == "O" && Board[4] == "O" && Board[6] == "O")
             {
-                Reset();
                 return true;
             }
-            else
-            {
-                List<int> a = GetAvailableIndices();
-                if(a.Count == 0) {
-                    Reset();
-                    MessageBox.Show("Tie!");
-                }
-            }
+           
             return false;
         }
+
 
         private List<int> GetAvailableIndices()
         {
